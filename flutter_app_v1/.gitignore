@@ -1,37 +1,47 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+# ================================
+# Flutter App .gitignore
+# ================================
 
-# IntelliJ related
+# ---------- OS / Editor ----------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
 *.iml
 *.ipr
 *.iws
-.idea/
+.atom/
+.history
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# ---------- Environment / Secrets ----------
+.env
+.env.*
+!.env.example
+*.pem
+*.pk
+*.p12
+*.jks
+*.keystore
+key.properties
+google-services.json
+GoogleService-Info.plist
+**/credentials.json
+**/service-account*.json
 
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# ---------- Flutter / Dart ----------
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
 /build/
 /coverage/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+pubspec.lock
 
 # Symbolication related
 app.*.symbols
@@ -39,7 +49,57 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# Generated files
+*.g.dart
+*.freezed.dart
+
+# ---------- Android ----------
+/android/.gradle/
+/android/captures/
+/android/gradlew
+/android/gradlew.bat
+/android/local.properties
+/android/app/debug/
+/android/app/profile/
+/android/app/release/
+.cxx/
+GeneratedPluginRegistrant.java
+
+# ---------- iOS ----------
+**/Pods/
+**/xcuserdata/
+**/.symlinks/
+**/DerivedData/
+**/*.moved-aside
+**/*.pbxuser
+!default.pbxuser
+**/*.perspectivev3
+!default.perspectivev3
+**/*.mode1v3
+!default.mode1v3
+**/*.mode2v3
+!default.mode2v3
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Flutter/flutter_export_environment.sh
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+
+# ---------- Misc ----------
+*.class
+*.log
+*.pyc
+*.tmp
+*.bak
+*.orig
+.build/
+.buildlog/
+.svn/
+.swiftpm/
+migrate_working_dir/

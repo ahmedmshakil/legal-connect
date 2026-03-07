@@ -56,16 +56,15 @@ class AuthController extends GetxController {
       final response = await _authProvider.login(email, password);
       final data = response.data;
 
-      if (data['success'] == true || data['token'] != null) {
-        final authData = data['data'] ?? data;
-        final tokenValue = authData['token'] ?? data['token'];
+      // Backend returns: {"data": {"token": ...}, "status": 200, "message": ...}
+      final authData = data['data'] ?? data;
+      final tokenValue = authData['token'] ?? data['token'];
 
-        if (tokenValue != null) {
-          await _saveAuth(tokenValue, authData);
-          await fetchUserInfo();
-          _connectWebSockets();
-          return true;
-        }
+      if (tokenValue != null) {
+        await _saveAuth(tokenValue, authData);
+        await fetchUserInfo();
+        _connectWebSockets();
+        return true;
       }
 
       error.value = data['message'] ?? 'Login failed';
@@ -98,15 +97,14 @@ class AuthController extends GetxController {
       );
       final data = response.data;
 
-      if (data['success'] == true || data['token'] != null) {
-        final authData = data['data'] ?? data;
-        final tokenValue = authData['token'] ?? data['token'];
+      // Backend returns: {"data": {"token": ...}, "status": 201, "message": ...}
+      final authData = data['data'] ?? data;
+      final tokenValue = authData['token'] ?? data['token'];
 
-        if (tokenValue != null) {
-          await _saveAuth(tokenValue, authData);
-          await fetchUserInfo();
-          return true;
-        }
+      if (tokenValue != null) {
+        await _saveAuth(tokenValue, authData);
+        await fetchUserInfo();
+        return true;
       }
 
       error.value = data['message'] ?? 'Registration failed';
