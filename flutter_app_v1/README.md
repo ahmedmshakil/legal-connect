@@ -1,20 +1,30 @@
-# Legal Connect Flutter App
+# Legal Connect Mobile App
 
-This Flutter app talks to the Dockerized Legal Connect backend and AI services.
+Flutter client for the Legal Connect Docker backend.
 
-## Local Development
+## Requirements
 
-- Backend API default: `http://10.0.2.2:8080/v1` on Android emulator
-- AI API default: `http://10.0.2.2:8000/api/v1` on Android emulator
-- Web, iOS simulator, and desktop default to `localhost`
-- Physical devices must point to your computer's LAN IP with `--dart-define`
+- Backend API running at `http://localhost:8080/v1`
+- AI API running at `http://localhost:8000/api/v1`
 
-## Run Commands
+## Default API Mapping
+
+- Android emulator: `http://10.0.2.2:8080/v1`
+- Chrome, Linux desktop, iOS simulator: `http://localhost:8080/v1`
+- Physical device: pass your computer LAN IP with `--dart-define`
+
+## Run
 
 Android emulator:
 
 ```bash
 flutter run
+```
+
+Chrome web:
+
+```bash
+flutter run -d chrome --web-port 5173
 ```
 
 Physical device:
@@ -25,20 +35,9 @@ flutter run \
   --dart-define=LC_AI_HOST=<LAN_IP>
 ```
 
-Optional overrides:
+## Demo Login
 
-```bash
-flutter run \
-  --dart-define=LC_BACKEND_SCHEME=http \
-  --dart-define=LC_BACKEND_HOST=192.168.0.10 \
-  --dart-define=LC_BACKEND_PORT=8080 \
-  --dart-define=LC_AI_SCHEME=http \
-  --dart-define=LC_AI_HOST=192.168.0.10 \
-  --dart-define=LC_AI_PORT=8000
-```
+- Email: `demo.user1@legalconnect.local`
+- Password: `Demo@1234`
 
-## Login Check
-
-- Docker backend should be reachable from the host at `http://localhost:8080/v1/auth/login`
-- Demo credentials live in `legal-connect/demo-credentials.txt`
-- If login fails with a connectivity message, confirm the host mapping matches your runtime target
+More demo accounts are listed in `legal-connect/demo-credentials.txt`.
