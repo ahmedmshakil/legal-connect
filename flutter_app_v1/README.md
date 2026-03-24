@@ -1,16 +1,44 @@
-# flutter_app_v1
+# Legal Connect Flutter App
 
-A new Flutter project.
+This Flutter app talks to the Dockerized Legal Connect backend and AI services.
 
-## Getting Started
+## Local Development
 
-This project is a starting point for a Flutter application.
+- Backend API default: `http://10.0.2.2:8080/v1` on Android emulator
+- AI API default: `http://10.0.2.2:8000/api/v1` on Android emulator
+- Web, iOS simulator, and desktop default to `localhost`
+- Physical devices must point to your computer's LAN IP with `--dart-define`
 
-A few resources to get you started if this is your first Flutter project:
+## Run Commands
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Android emulator:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter run
+```
+
+Physical device:
+
+```bash
+flutter run \
+  --dart-define=LC_BACKEND_HOST=<LAN_IP> \
+  --dart-define=LC_AI_HOST=<LAN_IP>
+```
+
+Optional overrides:
+
+```bash
+flutter run \
+  --dart-define=LC_BACKEND_SCHEME=http \
+  --dart-define=LC_BACKEND_HOST=192.168.0.10 \
+  --dart-define=LC_BACKEND_PORT=8080 \
+  --dart-define=LC_AI_SCHEME=http \
+  --dart-define=LC_AI_HOST=192.168.0.10 \
+  --dart-define=LC_AI_PORT=8000
+```
+
+## Login Check
+
+- Docker backend should be reachable from the host at `http://localhost:8080/v1/auth/login`
+- Demo credentials live in `legal-connect/demo-credentials.txt`
+- If login fails with a connectivity message, confirm the host mapping matches your runtime target
