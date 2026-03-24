@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 import '../../app/config/api_config.dart';
 import '../services/storage_service.dart';
@@ -31,6 +32,7 @@ class ApiProvider {
     d.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          _logRequest(options);
           final storage = Get.find<StorageService>();
           final token = await storage.getToken();
           if (token != null && token.isNotEmpty) {
@@ -38,13 +40,26 @@ class ApiProvider {
           }
           return handler.next(options);
         },
+        onResponse: (response, handler) {
+          _logResponse(response);
+          return handler.next(response);
+        },
         onError: (error, handler) async {
-          if (error.response?.statusCode == 401) {
+          _logError(error);
+
+          final isAuthEndpoint =
+              error.requestOptions.path.startsWith('/auth/') ||
+              error.requestOptions.path.contains('/auth/');
+
+          if (error.response?.statusCode == 401 && !isAuthEndpoint) {
             // Token expired or invalid — logout
             try {
               final storage = Get.find<StorageService>();
-              await storage.clearAll();
-              Get.offAllNamed('/login');
+              final token = await storage.getToken();
+              if (token != null && token.isNotEmpty) {
+                await storage.clearAll();
+                Get.offAllNamed('/login');
+              }
             } catch (_) {}
           }
           return handler.next(error);
@@ -83,5 +98,31 @@ class ApiProvider {
     );
 
     return d;
+  }
+
+  void _logRequest(RequestOptions options) {
+    if (!kDebugMode) return;
+    debugPrint(
+      '[API] ${options.method} ${options.uri} '
+      'base=${options.baseUrl.isEmpty ? 'n/a' : options.baseUrl}',
+    );
+  }
+
+  void _logResponse(Response response) {
+    if (!kDebugMode) return;
+    debugPrint(
+      '[API] ${response.statusCode} ${response.requestOptions.method} '
+      '${response.requestOptions.uri}',
+    );
+  }
+
+  void _logError(DioException error) {
+    if (!kDebugMode) return;
+    debugPrint(
+      '[API] ERROR ${error.type} ${error.requestOptions.method} '
+      '${error.requestOptions.uri} '
+      'status=${error.response?.statusCode} '
+      'message=${error.message}',
+    );
   }
 }
