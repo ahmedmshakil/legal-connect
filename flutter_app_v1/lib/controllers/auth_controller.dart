@@ -1,5 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import '../app/config/api_config.dart';
 import '../data/models/user_model.dart';
 import '../data/providers/auth_provider.dart';
 import '../data/services/storage_service.dart';
@@ -136,7 +138,19 @@ class AuthController extends GetxController {
 
     // Save user from authData if available
     if (authData['user'] != null) {
-      userInfo.value = UserModel.fromJson(authData['user']);
+      userInfo.value =
+          UserModel.fromJson(
+            Map<String, dynamic>.from(authData['user']),
+          ).withFallback(
+            UserModel(
+              id: decoded['userId']?.toString(),
+              email: decoded['sub'],
+              role: userType.value,
+              firstName: decoded['firstName'],
+              lastName: decoded['lastName'],
+              emailVerified: decoded['emailVerified'],
+            ),
+          );
     } else {
       userInfo.value = UserModel(
         id: decoded['userId']?.toString(),
@@ -156,7 +170,9 @@ class AuthController extends GetxController {
       final data = response.data;
       final userData = data['data'] ?? data;
       if (userData != null && userData is Map<String, dynamic>) {
-        userInfo.value = UserModel.fromJson(userData);
+        final fetchedUser = UserModel.fromJson(userData);
+        final mergedUser = fetchedUser.withFallback(userInfo.value);
+        userInfo.value = mergedUser;
         userType.value = (userInfo.value?.role ?? userType.value).toUpperCase();
 
         final storage = Get.find<StorageService>();
@@ -234,10 +250,14 @@ class AuthController extends GetxController {
       final response = await _authProvider.uploadProfilePicture(filePath);
       final data = response.data;
       final picData = data['data'] ?? data;
-      if (picData != null) {
+      if (picData != null && picData is Map) {
+        final normalizedPicture = UserModel.fromJson({
+          'profilePicture': Map<String, dynamic>.from(picData),
+        });
         userInfo.value = userInfo.value?.copyWith(
-          profilePictureUrl: picData['profilePictureUrl'],
-          profilePictureThumbnailUrl: picData['profilePictureThumbnailUrl'],
+          profilePictureUrl: normalizedPicture.profilePictureUrl,
+          profilePictureThumbnailUrl:
+              normalizedPicture.profilePictureThumbnailUrl,
         );
         final storage = Get.find<StorageService>();
         if (userInfo.value != null) {
@@ -286,17 +306,42 @@ class AuthController extends GetxController {
   }
 
   String _extractError(dynamic e) {
-    if (e is Exception) {
-      try {
-        final dioError = e as dynamic;
-        if (dioError.response?.data != null) {
-          final data = dioError.response.data;
-          if (data is Map) {
-            return data['message'] ?? data['error'] ?? 'An error occurred';
-          }
-          return data.toString();
+    if (e is DioException) {
+      final data = e.response?.data;
+      if (data is Map) {
+        final nestedError = data['error'];
+        if (nestedError is Map && nestedError['message'] != null) {
+          return nestedError['message'].toString();
         }
-      } catch (_) {}
+        if (data['message'] != null) {
+          return data['message'].toString();
+        }
+      }
+
+      if (data is String && data.trim().isNotEmpty) {
+        return data;
+      }
+
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        return 'Could not reach the Legal Connect backend at '
+            '${ApiConfig.backendBaseUrl}. '
+            'Android emulator should use 10.0.2.2. '
+            'On a physical device, run Flutter with '
+            '--dart-define=LC_BACKEND_HOST=<YOUR_COMPUTER_LAN_IP>.';
+      }
+
+      if (e.message != null && e.message!.trim().isNotEmpty) {
+        return e.message!;
+      }
+
+      return 'Request failed while talking to ${ApiConfig.backendBaseUrl}.';
+    }
+
+    if (e is Exception) {
+      return e.toString().replaceFirst('Exception: ', '');
     }
     return 'An error occurred. Please try again.';
   }

@@ -24,17 +24,30 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final profilePicture = json['profilePicture'];
+    final profilePictureMap = profilePicture is Map
+        ? Map<String, dynamic>.from(profilePicture)
+        : <String, dynamic>{};
+
     return UserModel(
       id: json['id']?.toString(),
       firstName: json['firstName'],
       lastName: json['lastName'],
       email: json['email'],
-      role: json['role'],
+      role: json['role']?.toString().toUpperCase(),
       emailVerified: json['emailVerified'],
-      profilePictureUrl: json['profilePictureUrl'],
-      profilePictureThumbnailUrl: json['profilePictureThumbnailUrl'],
-      createdAt: json['createdAt'],
-      updatedAt: json['updatedAt'],
+      profilePictureUrl:
+          json['profilePictureUrl'] ??
+          json['fullPictureUrl'] ??
+          profilePictureMap['profilePictureUrl'] ??
+          profilePictureMap['fullPictureUrl'],
+      profilePictureThumbnailUrl:
+          json['profilePictureThumbnailUrl'] ??
+          json['thumbnailPictureUrl'] ??
+          profilePictureMap['profilePictureThumbnailUrl'] ??
+          profilePictureMap['thumbnailPictureUrl'],
+      createdAt: json['createdAt']?.toString(),
+      updatedAt: json['updatedAt']?.toString(),
     );
   }
 
@@ -48,7 +61,27 @@ class UserModel {
       'emailVerified': emailVerified,
       'profilePictureUrl': profilePictureUrl,
       'profilePictureThumbnailUrl': profilePictureThumbnailUrl,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
     };
+  }
+
+  UserModel withFallback(UserModel? fallback) {
+    if (fallback == null) return this;
+
+    return UserModel(
+      id: id ?? fallback.id,
+      firstName: firstName ?? fallback.firstName,
+      lastName: lastName ?? fallback.lastName,
+      email: email ?? fallback.email,
+      role: role ?? fallback.role,
+      emailVerified: emailVerified ?? fallback.emailVerified,
+      profilePictureUrl: profilePictureUrl ?? fallback.profilePictureUrl,
+      profilePictureThumbnailUrl:
+          profilePictureThumbnailUrl ?? fallback.profilePictureThumbnailUrl,
+      createdAt: createdAt ?? fallback.createdAt,
+      updatedAt: updatedAt ?? fallback.updatedAt,
+    );
   }
 
   String get fullName => '${firstName ?? ''} ${lastName ?? ''}'.trim();
@@ -66,6 +99,8 @@ class UserModel {
     bool? emailVerified,
     String? profilePictureUrl,
     String? profilePictureThumbnailUrl,
+    String? createdAt,
+    String? updatedAt,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -77,6 +112,8 @@ class UserModel {
       profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
       profilePictureThumbnailUrl:
           profilePictureThumbnailUrl ?? this.profilePictureThumbnailUrl,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }
