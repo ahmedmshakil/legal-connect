@@ -42,12 +42,15 @@ class CaseController extends GetxController {
       );
 
       final data = response.data;
-      final pageData = data['data'] ?? data;
+      final innerData = data['data'] ?? data;
+      final metadata = data['metadata'];
 
-      if (pageData != null) {
+      if (innerData != null) {
+        // Backend CaseListResponseDTO wraps list in 'cases' key
+        final caseList = innerData['cases'] ?? innerData['content'] ?? (innerData is List ? innerData : []);
         final content =
-            (pageData['content'] as List?)
-                ?.map((e) => CaseModel.fromJson(e))
+            (caseList as List?)
+                ?.map((e) => CaseModel.fromJson(Map<String, dynamic>.from(e)))
                 .toList() ??
             [];
 
@@ -57,9 +60,10 @@ class CaseController extends GetxController {
           cases.addAll(content);
         }
 
-        totalPages.value = pageData['totalPages'] ?? 0;
-        totalElements.value = pageData['totalElements'] ?? 0;
-        currentPage.value = pageData['number'] ?? 0;
+        // Pagination info is in the 'metadata' key at root level
+        totalPages.value = metadata?['totalPages'] ?? innerData['totalPages'] ?? 0;
+        totalElements.value = metadata?['totalCount'] ?? innerData['totalElements'] ?? 0;
+        currentPage.value = metadata?['pageNumber'] ?? innerData['number'] ?? 0;
       }
     } catch (e) {
       error.value = 'Failed to load cases';
