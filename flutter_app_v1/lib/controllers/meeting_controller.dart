@@ -17,9 +17,14 @@ class MeetingController extends GetxController {
       final data = response.data;
       final listData = data['data'] ?? data;
 
-      if (listData is List) {
-        meetings.value = listData.map((e) => MeetingModel.fromJson(e)).toList();
-      }
+      // Backend returns List<MeetingResponseDTO> directly
+      final meetingList = listData is List
+          ? listData
+          : (listData is Map ? (listData['meetings'] ?? []) : []);
+
+      meetings.value = (meetingList as List)
+          .map((e) => MeetingModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
     } catch (_) {
     } finally {
       isLoading.value = false;

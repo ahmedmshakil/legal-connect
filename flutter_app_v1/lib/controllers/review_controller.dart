@@ -31,11 +31,14 @@ class ReviewController extends GetxController {
       final data = response.data;
       final listData = data['data'] ?? data;
 
-      if (listData is List) {
-        lawyerReviews.value = listData
-            .map((e) => ReviewModel.fromJson(e))
-            .toList();
-      }
+      // Backend LawyerReviewListResponseDTO wraps list in 'reviews' key
+      final reviewList = listData is List
+          ? listData
+          : (listData is Map ? (listData['reviews'] ?? []) : []);
+
+      lawyerReviews.value = (reviewList as List)
+          .map((e) => ReviewModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
     } catch (_) {
     } finally {
       isLoading.value = false;

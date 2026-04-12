@@ -19,12 +19,13 @@ class PaymentController extends GetxController {
       final pageData = data['data'] ?? data;
 
       if (pageData != null) {
-        final content =
-            (pageData['content'] as List?)
-                ?.map((e) => PaymentModel.fromJson(e))
-                .toList() ??
-            [];
-        payments.value = content;
+        // Backend returns List<PaymentResponseDTO> directly (not paginated content)
+        final paymentList = pageData is List
+            ? pageData
+            : (pageData['content'] ?? []);
+        payments.value = (paymentList as List)
+            .map((e) => PaymentModel.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
       }
     } catch (_) {
     } finally {

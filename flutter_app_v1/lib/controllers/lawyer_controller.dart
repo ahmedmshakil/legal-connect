@@ -87,11 +87,14 @@ class LawyerController extends GetxController {
       final data = response.data;
       final slotsData = data['data'] ?? data;
 
-      if (slotsData != null && slotsData is List) {
-        availabilitySlots.value = slotsData
-            .map((e) => AvailabilitySlotModel.fromJson(e))
-            .toList();
-      }
+      // Backend LawyerAvailabilitySlotListResponseDTO wraps list in 'slots' key
+      final slotList = slotsData is List
+          ? slotsData
+          : (slotsData is Map ? (slotsData['slots'] ?? []) : []);
+
+      availabilitySlots.value = (slotList as List)
+          .map((e) => AvailabilitySlotModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
     } catch (_) {}
   }
 

@@ -18,12 +18,13 @@ class ScheduleController extends GetxController {
       final pageData = data['data'] ?? data;
 
       if (pageData != null) {
-        final content =
-            (pageData['content'] as List?)
-                ?.map((e) => ScheduleModel.fromJson(e))
-                .toList() ??
-            [];
-        schedules.value = content;
+        // Backend ScheduleListResponseDTO wraps list in 'schedules' key
+        final schedList = pageData is List
+            ? pageData
+            : (pageData['schedules'] ?? pageData['content'] ?? []);
+        schedules.value = (schedList as List)
+            .map((e) => ScheduleModel.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
       }
     } catch (_) {
     } finally {
@@ -38,11 +39,14 @@ class ScheduleController extends GetxController {
       final data = response.data;
       final listData = data['data'] ?? data;
 
-      if (listData is List) {
-        caseSchedules.value = listData
-            .map((e) => ScheduleModel.fromJson(e))
-            .toList();
-      }
+      // Backend ScheduleListResponseDTO wraps list in 'schedules' key
+      final schedList = listData is List
+          ? listData
+          : (listData is Map ? (listData['schedules'] ?? []) : []);
+
+      caseSchedules.value = (schedList as List)
+          .map((e) => ScheduleModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
     } catch (_) {
     } finally {
       isLoading.value = false;
