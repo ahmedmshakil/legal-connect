@@ -104,3 +104,8 @@ ios/Runner/GeneratedPluginRegistrant.*
 .svn/
 .swiftpm/
 migrate_working_dir/
+
+
+# ---------------- Extra ----------------
+log.txt
+log2.txt
