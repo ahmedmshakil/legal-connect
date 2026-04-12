@@ -14,13 +14,17 @@ class InitialBinding extends Bindings {
     final api = ApiProvider();
     api.init();
     Get.put(api, permanent: true);
-    Get.put(WebSocketService(), permanent: true);
-    Get.put(ChatWebSocketService(), permanent: true);
 
-    // Core controllers
+    // WebSocket services — lazy loaded (only when needed)
+    Get.lazyPut(() => WebSocketService(), fenix: true);
+    Get.lazyPut(() => ChatWebSocketService(), fenix: true);
+
+    // Core controllers — always needed
     Get.put(ThemeController(), permanent: true);
     Get.put(AuthController(), permanent: true);
-    Get.put(NotificationController(), permanent: true);
-    Get.put(ChatController(), permanent: true);
+
+    // These are needed for badge counts — lazy but auto-created
+    Get.lazyPut(() => NotificationController(), fenix: true);
+    Get.lazyPut(() => ChatController(), fenix: true);
   }
 }

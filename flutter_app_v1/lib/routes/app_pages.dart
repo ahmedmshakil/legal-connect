@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'app_routes.dart';
 import 'initial_binding.dart';
 import '../views/splash/splash_page.dart';
+import '../views/main_shell.dart';
 import '../views/auth/login_page.dart';
 import '../views/auth/register_page.dart';
 import '../views/auth/forgot_password_page.dart';
@@ -44,6 +45,12 @@ class AppPages {
       page: () => const ForgotPasswordPage(),
     ),
     GetPage(name: AppRoutes.verifyEmail, page: () => const VerifyEmailPage()),
+    // Main shell with bottom navigation
+    GetPage(
+      name: AppRoutes.home,
+      page: () => const MainShell(),
+      middlewares: [AuthMiddleware()],
+    ),
     // User routes
     GetPage(
       name: AppRoutes.userDashboard,
