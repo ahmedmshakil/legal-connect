@@ -37,11 +37,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
         'Email verified successfully',
         snackPosition: SnackPosition.BOTTOM,
       );
-      if (auth.isLawyer) {
-        Get.offAllNamed(AppRoutes.lawyerDashboard);
-      } else {
-        Get.offAllNamed(AppRoutes.userDashboard);
-      }
+      Get.offAllNamed(AppRoutes.home);
     } else {
       Get.snackbar(
         'Error',

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/validators.dart';
+import '../../app/theme/app_colors.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -11,7 +12,8 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends State<RegisterPage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl = TextEditingController();
@@ -22,6 +24,18 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscure = true;
   bool _obscureConfirm = true;
 
+  late AnimationController _animCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _animCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _animCtrl.forward();
+  }
+
   @override
   void dispose() {
     _firstNameCtrl.dispose();
@@ -29,7 +43,28 @@ class _RegisterPageState extends State<RegisterPage> {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmPwCtrl.dispose();
+    _animCtrl.dispose();
     super.dispose();
+  }
+
+  Widget _staggered(int index, Widget child) {
+    final begin = (index * 0.1).clamp(0.0, 0.8);
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: _animCtrl,
+        curve: Interval(begin, 1.0, curve: Curves.easeOut),
+      ),
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.12),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: _animCtrl,
+          curve: Interval(begin, 1.0, curve: Curves.easeOutCubic),
+        )),
+        child: child,
+      ),
+    );
   }
 
   Future<void> _register() async {
@@ -47,6 +82,9 @@ class _RegisterPageState extends State<RegisterPage> {
         'Success',
         'Account created! Please verify your email.',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.success.withValues(alpha: 0.1),
+        colorText: AppColors.success,
+        margin: const EdgeInsets.all(16),
       );
       Get.toNamed(AppRoutes.verifyEmail, arguments: _emailCtrl.text.trim());
     } else {
@@ -54,7 +92,9 @@ class _RegisterPageState extends State<RegisterPage> {
         'Registration Failed',
         auth.error.value,
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade100,
+        backgroundColor: AppColors.error.withValues(alpha: 0.1),
+        colorText: AppColors.error,
+        margin: const EdgeInsets.all(16),
       );
     }
   }
@@ -62,152 +102,228 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final auth = Get.find<AuthController>();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Account')),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Join Legal Connect',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+                _staggered(
+                  0,
+                  Text(
+                    'Join Legal Connect',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
+                        ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Create your account to get started',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
+                const SizedBox(height: 6),
+                _staggered(
+                  0,
+                  Text(
+                    'Create your account to get started',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.outline,
+                        ),
                   ),
                 ),
                 const SizedBox(height: 24),
                 // Role selector
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(
-                      value: 'USER',
-                      label: Text('Client'),
-                      icon: Icon(Icons.person),
+                _staggered(
+                  1,
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(
+                        value: 'USER',
+                        label: Text('Client'),
+                        icon: Icon(Icons.person_rounded),
+                      ),
+                      ButtonSegment(
+                        value: 'LAWYER',
+                        label: Text('Lawyer'),
+                        icon: Icon(Icons.gavel_rounded),
+                      ),
+                    ],
+                    selected: {_role},
+                    onSelectionChanged: (s) =>
+                        setState(() => _role = s.first),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Form card
+                _staggered(
+                  2,
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Theme.of(context)
+                            .dividerColor
+                            .withValues(alpha: 0.3),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
-                    ButtonSegment(
-                      value: 'LAWYER',
-                      label: Text('Lawyer'),
-                      icon: Icon(Icons.gavel),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _firstNameCtrl,
+                                decoration: const InputDecoration(
+                                  labelText: 'First Name',
+                                  prefixIcon: Icon(Icons.person_outline),
+                                ),
+                                validator: Validators.name,
+                                textInputAction: TextInputAction.next,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _lastNameCtrl,
+                                decoration: const InputDecoration(
+                                  labelText: 'Last Name',
+                                  prefixIcon: Icon(Icons.person_outline),
+                                ),
+                                validator: Validators.name,
+                                textInputAction: TextInputAction.next,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          controller: _emailCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Email',
+                            prefixIcon: Icon(Icons.email_outlined),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                          validator: Validators.email,
+                          textInputAction: TextInputAction.next,
+                        ),
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          controller: _passwordCtrl,
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscure
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                size: 20,
+                              ),
+                              onPressed: () =>
+                                  setState(() => _obscure = !_obscure),
+                            ),
+                          ),
+                          obscureText: _obscure,
+                          validator: Validators.password,
+                          textInputAction: TextInputAction.next,
+                        ),
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          controller: _confirmPwCtrl,
+                          decoration: InputDecoration(
+                            labelText: 'Confirm Password',
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirm
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                size: 20,
+                              ),
+                              onPressed: () => setState(
+                                  () => _obscureConfirm = !_obscureConfirm),
+                            ),
+                          ),
+                          obscureText: _obscureConfirm,
+                          validator: (v) =>
+                              Validators.confirmPassword(v, _passwordCtrl.text),
+                          textInputAction: TextInputAction.done,
+                        ),
+                        const SizedBox(height: 20),
+                        Obx(
+                          () => SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed:
+                                  auth.isLoading.value ? null : _register,
+                              child: auth.isLoading.value
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white),
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Create Account',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                  selected: {_role},
-                  onSelectionChanged: (s) => setState(() => _role = s.first),
+                  ),
                 ),
                 const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _firstNameCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'First Name',
-                          prefixIcon: Icon(Icons.person_outline),
+                _staggered(
+                  3,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Already have an account?',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.outline,
+                            ),
+                      ),
+                      TextButton(
+                        onPressed: () => Get.back(),
+                        child: Text(
+                          'Sign In',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.primary,
+                          ),
                         ),
-                        validator: Validators.name,
-                        textInputAction: TextInputAction.next,
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _lastNameCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Last Name',
-                          prefixIcon: Icon(Icons.person_outline),
-                        ),
-                        validator: Validators.name,
-                        textInputAction: TextInputAction.next,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _emailCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: Validators.email,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscure ? Icons.visibility_off : Icons.visibility,
-                      ),
-                      onPressed: () => setState(() => _obscure = !_obscure),
-                    ),
-                  ),
-                  obscureText: _obscure,
-                  validator: Validators.password,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _confirmPwCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirm
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscureConfirm = !_obscureConfirm),
-                    ),
-                  ),
-                  obscureText: _obscureConfirm,
-                  validator: (v) =>
-                      Validators.confirmPassword(v, _passwordCtrl.text),
-                  textInputAction: TextInputAction.done,
-                ),
-                const SizedBox(height: 24),
-                Obx(
-                  () => SizedBox(
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: auth.isLoading.value ? null : _register,
-                      child: auth.isLoading.value
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Create Account'),
-                    ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Already have an account?'),
-                    TextButton(
-                      onPressed: () => Get.back(),
-                      child: const Text('Sign In'),
-                    ),
-                  ],
-                ),
+                const SizedBox(height: 32),
               ],
             ),
           ),

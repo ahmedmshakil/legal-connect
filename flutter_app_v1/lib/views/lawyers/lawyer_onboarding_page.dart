@@ -55,7 +55,7 @@ class _LawyerOnboardingPageState extends State<LawyerOnboardingPage> {
         'Profile created! Awaiting admin approval.',
         snackPosition: SnackPosition.BOTTOM,
       );
-      Get.offAllNamed(AppRoutes.lawyerDashboard);
+      Get.offAllNamed(AppRoutes.home);
     }
   }
 
@@ -139,12 +139,13 @@ class _LawyerOnboardingPageState extends State<LawyerOnboardingPage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: 'Practicing Court',
                 ),
                 initialValue: _court,
                 items: AppConstants.courts
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis)))
                     .toList(),
                 onChanged: (v) => setState(() => _court = v),
                 validator: (v) => v == null ? 'Required' : null,
