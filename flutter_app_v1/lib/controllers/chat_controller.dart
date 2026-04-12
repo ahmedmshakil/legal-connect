@@ -81,11 +81,14 @@ class ChatController extends GetxController {
       final data = response.data;
       final convData = data['data'] ?? data;
 
-      if (convData != null && convData is List) {
-        conversations.value = convData
-            .map((e) => ConversationModel.fromJson(e))
-            .toList();
-      }
+      // Backend ConversationListResponseDTO wraps list in 'conversations' key
+      final convList = convData is List
+          ? convData
+          : (convData is Map ? (convData['conversations'] ?? []) : []);
+
+      conversations.value = (convList as List)
+          .map((e) => ConversationModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
     } catch (_) {
     } finally {
       isLoading.value = false;
@@ -103,9 +106,13 @@ class ChatController extends GetxController {
       final pageData = data['data'] ?? data;
 
       if (pageData != null) {
+        // Backend MessageListResponseDTO wraps list in 'messages' key
+        final msgList = pageData is List
+            ? pageData
+            : (pageData['messages'] ?? pageData['content'] ?? []);
         final content =
-            (pageData['content'] as List?)
-                ?.map((e) => MessageModel.fromJson(e))
+            (msgList as List?)
+                ?.map((e) => MessageModel.fromJson(Map<String, dynamic>.from(e)))
                 .toList() ??
             [];
 
@@ -147,7 +154,15 @@ class ChatController extends GetxController {
     try {
       final response = await _provider.getUnreadCount();
       final data = response.data;
-      totalUnreadCount.value = data['data'] ?? data ?? 0;
+      // Backend Chat UnreadCountResponseDTO: {"data": {"totalUnreadCount": N}}
+      final inner = data['data'] ?? data;
+      if (inner is Map) {
+        totalUnreadCount.value = (inner['totalUnreadCount'] ?? inner['unreadCount'] ?? 0) as int;
+      } else if (inner is int) {
+        totalUnreadCount.value = inner;
+      } else {
+        totalUnreadCount.value = 0;
+      }
     } catch (_) {}
   }
 }

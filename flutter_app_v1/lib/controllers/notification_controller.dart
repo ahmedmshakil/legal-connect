@@ -57,11 +57,16 @@ class NotificationController extends GetxController {
       );
       final data = response.data;
       final pageData = data['data'] ?? data;
+      final metadata = data['metadata'];
 
       if (pageData != null) {
+        // Backend NotificationListResponseDTO wraps list in 'notifications' key
+        final notifList = pageData is List
+            ? pageData
+            : (pageData['notifications'] ?? pageData['content'] ?? []);
         final content =
-            (pageData['content'] as List?)
-                ?.map((e) => NotificationModel.fromJson(e))
+            (notifList as List?)
+                ?.map((e) => NotificationModel.fromJson(Map<String, dynamic>.from(e)))
                 .toList() ??
             [];
 
@@ -71,8 +76,8 @@ class NotificationController extends GetxController {
           notifications.addAll(content);
         }
 
-        totalPages.value = pageData['totalPages'] ?? 0;
-        currentPage.value = pageData['number'] ?? 0;
+        totalPages.value = metadata?['totalPages'] ?? pageData['totalPages'] ?? 0;
+        currentPage.value = metadata?['pageNumber'] ?? pageData['number'] ?? 0;
       }
     } catch (_) {
     } finally {
@@ -84,7 +89,15 @@ class NotificationController extends GetxController {
     try {
       final response = await _provider.getUnreadCount();
       final data = response.data;
-      unreadCount.value = data['data'] ?? data ?? 0;
+      // Backend Notification UnreadCountResponseDTO: {"data": {"unreadCount": N}}
+      final inner = data['data'] ?? data;
+      if (inner is Map) {
+        unreadCount.value = (inner['unreadCount'] ?? inner['totalUnreadCount'] ?? 0) as int;
+      } else if (inner is int) {
+        unreadCount.value = inner;
+      } else {
+        unreadCount.value = 0;
+      }
     } catch (_) {}
   }
 
@@ -131,11 +144,14 @@ class NotificationController extends GetxController {
       final data = response.data;
       final prefsData = data['data'] ?? data;
 
-      if (prefsData != null && prefsData is List) {
-        preferences.value = prefsData
-            .map((e) => NotificationPreferenceModel.fromJson(e))
-            .toList();
-      }
+      // Backend NotificationPreferenceListResponseDTO wraps list in 'preferences' key
+      final prefsList = prefsData is List
+          ? prefsData
+          : (prefsData is Map ? (prefsData['preferences'] ?? []) : []);
+
+      preferences.value = (prefsList as List)
+          .map((e) => NotificationPreferenceModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
     } catch (_) {}
   }
 
