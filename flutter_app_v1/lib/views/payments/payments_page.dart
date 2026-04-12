@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../../controllers/payment_controller.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/animated_list_item.dart';
+import '../../app/theme/app_colors.dart';
 import '../../utils/helpers.dart';
 
 class PaymentsPage extends StatefulWidget {
@@ -24,6 +26,8 @@ class _PaymentsPageState extends State<PaymentsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Payments')),
       body: RefreshIndicator(
@@ -34,55 +38,111 @@ class _PaymentsPageState extends State<PaymentsPage> {
           }
           if (_ctrl.payments.isEmpty) {
             return const EmptyStateWidget(
-              icon: Icons.payment_outlined,
+              icon: Icons.payment_rounded,
               title: 'No Payments',
               subtitle: 'Payment history will appear here',
             );
           }
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
             itemCount: _ctrl.payments.length,
             itemBuilder: (_, i) {
               final p = _ctrl.payments[i];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
+              return AnimatedListItem(
+                index: i,
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Material(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(14),
+                    clipBehavior: Clip.antiAlias,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            Helpers.formatCurrency(p.amount ?? 0),
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: (p.status == 'PAID'
+                                          ? AppColors.success
+                                          : AppColors.warning)
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  p.status == 'PAID'
+                                      ? Icons.check_circle_rounded
+                                      : Icons.pending_rounded,
+                                  color: p.status == 'PAID'
+                                      ? AppColors.success
+                                      : AppColors.warning,
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      Helpers.formatCurrency(p.amount ?? 0),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                              fontWeight: FontWeight.w700),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${p.payerName ?? ''} → ${p.payeeName ?? ''}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                              color: colorScheme.outline),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              StatusBadge(label: p.status ?? 'PENDING'),
+                            ],
                           ),
-                          StatusBadge(label: p.status ?? 'PENDING'),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Icon(Icons.access_time_rounded,
+                                  size: 13, color: colorScheme.outline),
+                              const SizedBox(width: 4),
+                              Text(
+                                Helpers.formatDate(p.createdAt ?? ''),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                        color: colorScheme.outline,
+                                        fontSize: 11),
+                              ),
+                            ],
+                          ),
+                          if (p.status == 'PENDING') ...[
+                            const SizedBox(height: 14),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () =>
+                                    _ctrl.startStripeCheckout(p.id ?? ''),
+                                icon: const Icon(Icons.payment_rounded,
+                                    size: 18),
+                                label: const Text('Pay Now'),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${p.payerName ?? ''} → ${p.payeeName ?? ''}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      Text(
-                        Helpers.formatDate(p.createdAt ?? ''),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      if (p.status == 'PENDING') ...[
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () =>
-                                _ctrl.startStripeCheckout(p.id ?? ''),
-                            child: const Text('Pay Now'),
-                          ),
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
                 ),
               );
