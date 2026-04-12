@@ -50,8 +50,14 @@ class LawyerModel {
   });
 
   factory LawyerModel.fromJson(Map<String, dynamic> json) {
+    // Backend LawyerSearchResultDTO uses 'lawyerId', LawyerResponseDTO uses 'id'
+    // Profile picture can be nested in 'profilePicture' object or flat
+    final profilePic = json['profilePicture'] is Map
+        ? Map<String, dynamic>.from(json['profilePicture'])
+        : <String, dynamic>{};
+
     return LawyerModel(
-      id: json['id']?.toString(),
+      id: json['lawyerId']?.toString() ?? json['id']?.toString(),
       userId: json['userId']?.toString(),
       firstName: json['firstName'],
       lastName: json['lastName'],
@@ -70,8 +76,8 @@ class LawyerModel {
           ? List<String>.from(json['specializations'])
           : null,
       completeProfile: json['completeProfile'],
-      profilePictureUrl: json['profilePictureUrl'],
-      profilePictureThumbnailUrl: json['profilePictureThumbnailUrl'],
+      profilePictureUrl: json['profilePictureUrl'] ?? profilePic['fullPictureUrl'],
+      profilePictureThumbnailUrl: json['profilePictureThumbnailUrl'] ?? profilePic['thumbnailPictureUrl'],
       averageRating: json['averageRating']?.toDouble(),
       totalReviews: json['totalReviews'],
       createdAt: json['createdAt'],
