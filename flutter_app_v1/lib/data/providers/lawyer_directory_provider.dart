@@ -10,13 +10,17 @@ class LawyerDirectoryProvider {
     String sortDirection = 'DESC',
     Map<String, dynamic>? filters,
   }) {
-    final data = <String, dynamic>{
-      'page': page,
-      'size': size,
-      'sortDirection': sortDirection,
-      ...?filters,
-    };
-    return _dio.post('/lawyer-directory/find-lawyers', data: data);
+    // Backend expects page/size/sortDirection as @RequestParam (query params)
+    // and the filter criteria as @RequestBody
+    return _dio.post(
+      '/lawyer-directory/find-lawyers',
+      data: filters ?? {},
+      queryParameters: {
+        'page': page,
+        'size': size,
+        'sortDirection': sortDirection,
+      },
+    );
   }
 
   Future<Response> addReview(Map<String, dynamic> data) {

@@ -52,11 +52,16 @@ class LawyerSearchController extends GetxController {
 
       final data = response.data;
       final pageData = data['data'] ?? data;
+      final metadata = data['metadata'];
 
       if (pageData != null) {
+        // Backend returns List<LawyerSearchResultDTO> directly
+        final lawyerList = pageData is List
+            ? pageData
+            : (pageData['content'] ?? []);
         final content =
-            (pageData['content'] as List?)
-                ?.map((e) => LawyerModel.fromJson(e))
+            (lawyerList as List?)
+                ?.map((e) => LawyerModel.fromJson(Map<String, dynamic>.from(e)))
                 .toList() ??
             [];
 
@@ -66,8 +71,8 @@ class LawyerSearchController extends GetxController {
           lawyers.addAll(content);
         }
 
-        totalPages.value = pageData['totalPages'] ?? 0;
-        currentPage.value = pageData['number'] ?? 0;
+        totalPages.value = metadata?['totalPages'] ?? pageData['totalPages'] ?? 0;
+        currentPage.value = metadata?['pageNumber'] ?? pageData['number'] ?? 0;
       }
     } catch (_) {
     } finally {
