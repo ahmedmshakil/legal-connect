@@ -40,23 +40,31 @@ class _FindLawyersPageState extends State<FindLawyersPage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Specialization'),
                 initialValue: _ctrl.specialization.value.isNotEmpty
                     ? _ctrl.specialization.value
                     : null,
                 items: AppConstants.specializations
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                    .map((s) => DropdownMenuItem(
+                          value: s,
+                          child: Text(s, overflow: TextOverflow.ellipsis),
+                        ))
                     .toList(),
                 onChanged: (v) => _ctrl.specialization.value = v ?? '',
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Court'),
                 initialValue: _ctrl.practicingCourt.value.isNotEmpty
                     ? _ctrl.practicingCourt.value
                     : null,
                 items: AppConstants.courts
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .map((c) => DropdownMenuItem(
+                          value: c,
+                          child: Text(c, overflow: TextOverflow.ellipsis),
+                        ))
                     .toList(),
                 onChanged: (v) => _ctrl.practicingCourt.value = v ?? '',
               ),
@@ -188,7 +196,10 @@ class _FindLawyersPageState extends State<FindLawyersPage> {
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               child: InkWell(
-                onTap: () => Get.toNamed('/user/lawyers/${l.id}'),
+                onTap: () => Get.toNamed(
+                  '/user/lawyers/${l.email ?? l.id}',
+                  arguments: {'lawyerId': l.id, 'email': l.email},
+                ),
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
                   padding: const EdgeInsets.all(16),

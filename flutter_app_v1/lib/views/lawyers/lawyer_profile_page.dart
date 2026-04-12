@@ -23,12 +23,20 @@ class _LawyerProfilePageState extends State<LawyerProfilePage> {
     super.initState();
     _ctrl = Get.put(LawyerController());
     _reviewCtrl = Get.put(ReviewController());
-    final id = Get.parameters['id'];
-    if (id != null) {
-      _ctrl.fetchLawyerInfo(email: id);
-      _reviewCtrl.fetchLawyerReviews(id);
+
+    final args = Get.arguments is Map ? Map<String, dynamic>.from(Get.arguments) : <String, dynamic>{};
+    final routeId = Get.parameters['id'];
+    final email = args['email']?.toString() ?? routeId;
+    final lawyerId = args['lawyerId']?.toString();
+
+    if (email != null && email != 'null') {
+      _ctrl.fetchLawyerInfo(email: email);
     } else {
       _ctrl.fetchLawyerInfo();
+    }
+
+    if (lawyerId != null && lawyerId != 'null') {
+      _reviewCtrl.fetchLawyerReviews(lawyerId);
     }
   }
 
