@@ -32,19 +32,23 @@ class CaseModel {
   });
 
   factory CaseModel.fromJson(Map<String, dynamic> json) {
+    // Backend CaseResponseDTO nests lawyer/client inside objects
+    final lawyer = json['lawyer'] is Map ? Map<String, dynamic>.from(json['lawyer']) : <String, dynamic>{};
+    final client = json['client'] is Map ? Map<String, dynamic>.from(json['client']) : <String, dynamic>{};
+
     return CaseModel(
-      id: json['id']?.toString(),
+      id: json['caseId']?.toString() ?? json['id']?.toString(),
       title: json['title'],
       description: json['description'],
       status: json['status'],
-      lawyerId: json['lawyerId']?.toString(),
-      clientId: json['clientId']?.toString(),
-      lawyerFirstName: json['lawyerFirstName'],
-      lawyerLastName: json['lawyerLastName'],
-      lawyerEmail: json['lawyerEmail'],
-      clientFirstName: json['clientFirstName'],
-      clientLastName: json['clientLastName'],
-      clientEmail: json['clientEmail'],
+      lawyerId: lawyer['id']?.toString() ?? json['lawyerId']?.toString(),
+      clientId: client['id']?.toString() ?? json['clientId']?.toString(),
+      lawyerFirstName: lawyer['firstName'] ?? json['lawyerFirstName'],
+      lawyerLastName: lawyer['lastName'] ?? json['lawyerLastName'],
+      lawyerEmail: lawyer['email'] ?? json['lawyerEmail'],
+      clientFirstName: client['firstName'] ?? json['clientFirstName'],
+      clientLastName: client['lastName'] ?? json['clientLastName'],
+      clientEmail: client['email'] ?? json['clientEmail'],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
     );
