@@ -20,9 +20,14 @@ class BlogController extends GetxController {
       final data = response.data;
       final listData = data['data'] ?? data;
 
-      if (listData is List) {
-        blogs.value = listData.map((e) => BlogModel.fromJson(e)).toList();
-      }
+      // Backend BlogListResponseDTO wraps list in 'blogs' key
+      final blogList = listData is List
+          ? listData
+          : (listData is Map ? (listData['blogs'] ?? []) : []);
+
+      blogs.value = (blogList as List)
+          .map((e) => BlogModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
     } catch (_) {
     } finally {
       isLoading.value = false;
@@ -78,7 +83,7 @@ class BlogController extends GetxController {
 
   Future<bool> changeBlogStatus(String blogId, String status) async {
     try {
-      await _provider.changeBlogStatus(blogId, {'status': status});
+      await _provider.changeBlogStatus(blogId, status);
       return true;
     } catch (_) {
       return false;
@@ -92,11 +97,14 @@ class BlogController extends GetxController {
       final data = response.data;
       final listData = data['data'] ?? data;
 
-      if (listData is List) {
-        subscribedBlogs.value = listData
-            .map((e) => BlogModel.fromJson(e))
-            .toList();
-      }
+      // Backend BlogListResponseDTO wraps list in 'blogs' key
+      final blogList = listData is List
+          ? listData
+          : (listData is Map ? (listData['blogs'] ?? []) : []);
+
+      subscribedBlogs.value = (blogList as List)
+          .map((e) => BlogModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
     } catch (_) {
     } finally {
       isLoading.value = false;
@@ -111,11 +119,14 @@ class BlogController extends GetxController {
       final data = response.data;
       final listData = data['data'] ?? data;
 
-      if (listData is List) {
-        searchResults.value = listData
-            .map((e) => BlogModel.fromJson(e))
-            .toList();
-      }
+      // Backend BlogSearchListResponseDTO wraps list in 'results' key
+      final resultList = listData is List
+          ? listData
+          : (listData is Map ? (listData['results'] ?? []) : []);
+
+      searchResults.value = (resultList as List)
+          .map((e) => BlogModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
     } catch (_) {
     } finally {
       isLoading.value = false;

@@ -16,8 +16,9 @@ class BlogProvider {
     return _dio.delete('/blogs/$blogId');
   }
 
-  Future<Response> changeBlogStatus(String blogId, Map<String, dynamic> data) {
-    return _dio.put('/blogs/$blogId/status', data: data);
+  Future<Response> changeBlogStatus(String blogId, String status) {
+    // Backend expects status as @RequestParam, not body
+    return _dio.put('/blogs/$blogId/status', queryParameters: {'status': status});
   }
 
   Future<Response> getBlog(String blogId) {
